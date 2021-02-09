@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: build-and-test
+        name: Linter & Formatter
+        entry: bash -c 'npm run test:lint && npm run test:prettier'
+        language: system
+        pass_filenames: false
+        verbose: true

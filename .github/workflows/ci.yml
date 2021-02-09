@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+     - name: Cache node modules
+       uses: actions/cache@v2
+       env:
+        cache-name: cache-node-modules
+        NODE_ENV: CI
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+       with:
+        # npm cache files are stored in `~/.npm` on Linux/macOS
+        path: ~/.npm
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+     - uses: actions/checkout@v2
+     - name: Use Node.js ${{ matrix.node-version }}
+       uses: actions/setup-node@v1
+       with:
+        node-version: ${{ matrix.node-version }}
+     - run: npm ci
+     - run: npm test
+     - run: npm run cov:lcov
+     - name: Codecov
+       uses: codecov/codecov-action@v1
+       with:
+         token: ${{ secrets.CODECOV_TOKEN }}
+         directory: ./coverage
