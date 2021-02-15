@@ -21,10 +21,8 @@ const KINESIS_CONFIG = {
 const test = anyTest as TestInterface<{ producer: KinesisProducer }>;
 
 test.before.cb('initialize kinesis stream', (t) => {
-  console.log('creating server');
   const server = kinesalite({ createStreamMs: 50 });
   server.listen(4567, async (err: Error) => {
-    console.log(err);
     if (err) throw err;
     const createStreamClient = new KinesisClient(KINESIS_CONFIG);
     await createStreamClient.send(
@@ -44,7 +42,7 @@ test.before.cb('initialize kinesis stream', (t) => {
 });
 
 test('put large number of small records', async (t) => {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 100; i++) {
     const records = [];
     for (let j = 0; j < 500; j++) {
       records.push({
@@ -61,11 +59,11 @@ test('put large number of small records', async (t) => {
 });
 
 test('put small number of large records', async (t) => {
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 10; i++) {
     const records = [];
-    for (let j = 0; j < 1; j++) {
+    for (let j = 0; j < 10; j++) {
       const singleRecord = [];
-      for (let k = 0; k < 1; k++) {
+      for (let k = 0; k < 1000; k++) {
         singleRecord.push({
           id: uuidv4(),
           attr: Math.random(),
