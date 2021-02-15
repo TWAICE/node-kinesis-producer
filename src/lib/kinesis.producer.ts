@@ -18,7 +18,7 @@ export class KinesisProducer {
   private readonly batchTime: number;
   private readonly maxRetries: number;
   private queueSizeInBytes: number;
-  private readonly _client: KinesisClient;
+  private _client: KinesisClient;
 
   /**
    * Kinesis Producer
@@ -72,6 +72,12 @@ export class KinesisProducer {
       kinesisRecord.Data = Buffer.from(kinesisRecord.Data);
     }
     const recordSize = getRecordSizeInBytes(kinesisRecord);
+    if (recordSize > this.batchSizeInBytes) {
+      throw new Error(
+        `Record size ${recordSize} cannot be greater than batchSize ${this.batchSizeInBytes}
+         for record with PartitionKey: ${kinesisRecord.PartitionKey}`
+      );
+    }
     const shouldFlush =
       this.queue.length + 1 > this.batchSize ||
       this.queueSizeInBytes + recordSize > this.batchSizeInBytes;
@@ -94,8 +100,11 @@ export class KinesisProducer {
     this.queueSizeInBytes += recordSize;
   }
 
+  /**
+   * Flush all the current queue records to Kinesis.
+   */
   public async flushQueue() {
-    await this.sendRecords(this.queue, 0);
+    await this.sendRecords(this.queue);
   }
 
   /**
@@ -107,7 +116,7 @@ export class KinesisProducer {
    */
   private async sendRecords(
     records: Array<PutRecordsRequestEntry>,
-    attempt = 0
+    attempt = 1
   ): Promise<PutRecordsResultEntry[] | undefined | null> {
     if (attempt > this.maxRetries) {
       throw new Error(`Max retries ${this.maxRetries} reached for this batch.`);
@@ -138,7 +147,7 @@ export class KinesisProducer {
 
     const failedRecords: PutRecordsRequestEntry[] = [];
     if (failedRecordCount > 0) {
-      console.warn('Retrying Failed Records');
+      logger.warning('Retrying Failed Records');
       response['Records']?.forEach((record, idx) => {
         if (Object.prototype.hasOwnProperty.call(record, 'ErrorCode')) {
           failedRecords.push(records[idx]);
@@ -151,6 +160,10 @@ export class KinesisProducer {
     return response['Records'];
   }
 
+  /**
+   * Reset the queue.
+   * @private
+   */
   private resetQueue() {
     this.queue = [];
     this.queueSizeInBytes = 0;
@@ -158,5 +171,9 @@ export class KinesisProducer {
 
   get client(): KinesisClient {
     return this._client;
+  }
+
+  set client(KinesisClient) {
+    this._client = KinesisClient;
   }
 }

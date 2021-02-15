@@ -1,4 +1,4 @@
-name: Build & Test Package
+name: ci
 
 on: [push, pull_request, workflow_dispatch]
 
@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [14.x, 15.x]
 
     steps:
      - name: Cache node modules

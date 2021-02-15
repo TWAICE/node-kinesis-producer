@@ -21,7 +21,8 @@
     "sandboxed",
     "transpiled",
     "typedoc",
-    "untracked"
+    "untracked",
+    "kinesis"
   ],
   "flagWords": [],
   "ignorePaths": [
