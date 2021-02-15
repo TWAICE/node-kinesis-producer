@@ -22,13 +22,13 @@ test.before.cb('initialize kinesis stream', (t) => {
     const createStreamClient = new KinesisClient({
       endpoint: KINESIS_ENDPOINT,
     });
-    await createStreamClient.send(
+    const x = await createStreamClient.send(
       new CreateStreamCommand({
         ShardCount: 1,
         StreamName: KINESIS_TEST_STREAM,
       })
     );
-
+    console.log(x);
     await delay(1000);
 
     t.context.producer = new KinesisProducer(KINESIS_TEST_STREAM, {
