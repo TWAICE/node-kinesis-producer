@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+
 import { CreateStreamCommand, KinesisClient } from '@aws-sdk/client-kinesis';
 import anyTest, { TestInterface } from 'ava';
 import kinesalite from 'kinesalite';
