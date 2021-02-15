@@ -9,7 +9,7 @@ import { KinesisProducer } from './kinesis.producer';
 import { delay } from './utils';
 
 const KINESIS_TEST_STREAM = 'test-stream';
-const KINESIS_ENDPOINT = 'localhost:4567';
+const KINESIS_ENDPOINT = 'http://localhost:4567';
 const test = anyTest as TestInterface<{ producer: KinesisProducer }>;
 
 test.before.cb('initialize kinesis stream', (t) => {
@@ -20,13 +20,15 @@ test.before.cb('initialize kinesis stream', (t) => {
     if (err) throw err;
     console.log('server created');
     const createStreamClient = new KinesisClient({
-      maxAttempts: 10,
+      endpoint: KINESIS_ENDPOINT,
+      tls: false,
+      region: 'eu-west-1',
       credentials: {
         accessKeyId: 'test',
         secretAccessKey: 'test',
       },
     });
-    console.log('client created');
+    // console.log('client created');
     const x = await createStreamClient.send(
       new CreateStreamCommand({
         ShardCount: 1,
