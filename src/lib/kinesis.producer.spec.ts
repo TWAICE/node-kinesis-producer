@@ -20,8 +20,11 @@ test.before.cb('initialize kinesis stream', (t) => {
     if (err) throw err;
     console.log('server created');
     const createStreamClient = new KinesisClient({
-      endpoint: KINESIS_ENDPOINT,
-      tls: false,
+      maxAttempts: 10,
+      credentials: {
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
+      },
     });
     console.log('client created');
     const x = await createStreamClient.send(
