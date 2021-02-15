@@ -9,7 +9,15 @@ import { KinesisProducer } from './kinesis.producer';
 import { delay } from './utils';
 
 const KINESIS_TEST_STREAM = 'test-stream';
-const KINESIS_ENDPOINT = 'http://localhost:4567';
+const KINESIS_CONFIG = {
+  endpoint: 'http://localhost:4567',
+  tls: false,
+  region: 'eu-west-1',
+  credentials: {
+    accessKeyId: 'test',
+    secretAccessKey: 'test',
+  },
+};
 const test = anyTest as TestInterface<{ producer: KinesisProducer }>;
 
 test.before.cb('initialize kinesis stream', (t) => {
@@ -18,34 +26,19 @@ test.before.cb('initialize kinesis stream', (t) => {
   server.listen(4567, async (err: Error) => {
     console.log(err);
     if (err) throw err;
-    console.log('server created');
-    const createStreamClient = new KinesisClient({
-      endpoint: KINESIS_ENDPOINT,
-      tls: false,
-      region: 'eu-west-1',
-      credentials: {
-        accessKeyId: 'test',
-        secretAccessKey: 'test',
-      },
-    });
-    // console.log('client created');
-    const x = await createStreamClient.send(
+    const createStreamClient = new KinesisClient(KINESIS_CONFIG);
+    await createStreamClient.send(
       new CreateStreamCommand({
         ShardCount: 1,
         StreamName: KINESIS_TEST_STREAM,
       })
     );
-    console.log(x);
     await delay(1000);
 
-    t.context.producer = new KinesisProducer(KINESIS_TEST_STREAM, {
-      endpoint: KINESIS_ENDPOINT,
-      maxAttempts: 10,
-      credentials: {
-        accessKeyId: 'test',
-        secretAccessKey: 'test',
-      },
-    });
+    t.context.producer = new KinesisProducer(
+      KINESIS_TEST_STREAM,
+      KINESIS_CONFIG
+    );
     t.end();
   });
 });
