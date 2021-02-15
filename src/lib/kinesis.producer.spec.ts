@@ -41,7 +41,7 @@ test.before.cb('initialize kinesis stream', (t) => {
 });
 
 test('put large number of small records', async (t) => {
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 1; i++) {
     const records = [];
     for (let j = 0; j < 500; j++) {
       records.push({
@@ -58,11 +58,11 @@ test('put large number of small records', async (t) => {
 });
 
 test('put small number of large records', async (t) => {
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 1; i++) {
     const records = [];
-    for (let j = 0; j < 10; j++) {
+    for (let j = 0; j < 1; j++) {
       const singleRecord = [];
-      for (let k = 0; k < 1000; k++) {
+      for (let k = 0; k < 1; k++) {
         singleRecord.push({
           id: uuidv4(),
           attr: Math.random(),
