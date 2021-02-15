@@ -13,9 +13,12 @@ const KINESIS_ENDPOINT = 'http://localhost:4567';
 const test = anyTest as TestInterface<{ producer: KinesisProducer }>;
 
 test.before.cb('initialize kinesis stream', (t) => {
+  console.log('creating server');
   const server = kinesalite({ createStreamMs: 50 });
   server.listen(4567, async (err: Error) => {
+    console.log(err);
     if (err) throw err;
+    console.log('server created');
     const createStreamClient = new KinesisClient({
       endpoint: KINESIS_ENDPOINT,
     });
