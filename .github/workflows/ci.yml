@@ -20,7 +20,6 @@ jobs:
        env:
         cache-name: cache-node-modules
         NODE_ENV: CI
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
        with:
         # npm cache files are stored in `~/.npm` on Linux/macOS
         path: ~/.npm
