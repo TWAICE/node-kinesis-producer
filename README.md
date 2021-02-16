@@ -1,8 +1,8 @@
 
 # NodeJs Kinesis Producer
 
-<p align="center">
-  <img width="150" height="150" src="https://i.imgur.com/DzHBVsI.png">
+<p style="text-align: center">
+  <img width="150" height="150" src="https://i.imgur.com/DzHBVsI.png" alt="Logo">
 </p>
 
 <div style="text-align: center;">
@@ -28,13 +28,11 @@ $ npm install @twaice/node-kinesis-producer
 import KinesisProducer from '@twaice/node-kinesis-producer';
 
 const producer = new KinesisProducer(
-    'stream-name', {
-        region: 'eu-west-1',
+    streamName: "stream-name",
+    clientConfig: {
+        region: "eu-west-1"
     },
-    500,
-    1024 * 1024,
-    10,
-    10
+    maxRetries: 10
 );
 
 const records = [{

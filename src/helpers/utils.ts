@@ -1,6 +1,6 @@
 import winston, { transports } from 'winston';
 
-import { KinesisRecord } from './interfaces';
+import { KinesisRecord } from '../lib/interfaces';
 
 /**
  * Winston Logger.

@@ -1,3 +1,8 @@
+/**
+ * @packageDocumentation
+ * @module KinesisProducer
+ */
+
 import { KinesisClientConfig } from '@aws-sdk/client-kinesis/KinesisClient';
 
 export interface KinesisRecord {

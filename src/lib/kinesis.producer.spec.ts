@@ -6,9 +6,10 @@ import kinesalite from 'kinesalite';
 import sinon from 'sinon';
 import { v4 as uuidv4 } from 'uuid';
 
+import { delay } from '../helpers/utils';
+
 import { KinesisRecord } from './interfaces';
 import { KinesisProducer } from './kinesis.producer';
-import { delay } from './utils';
 
 const KINESIS_TEST_STREAM = 'test-stream';
 const MAX_RETRIES = 3;

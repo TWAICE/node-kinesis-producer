@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * @module KinesisProducer
+ */
 import * as crypto from 'crypto';
 
 import {
@@ -7,10 +11,10 @@ import {
   PutRecordsResultEntry,
 } from '@aws-sdk/client-kinesis';
 
-import { KinesisProducerConfig, KinesisRecord } from './interfaces';
-import { delay, getRecordSizeInBytes, logger } from './utils';
+import { delay, getRecordSizeInBytes, logger } from '../helpers/utils';
 
-import Timer = NodeJS.Timer;
+import { KinesisProducerConfig, KinesisRecord } from './interfaces';
+
 export class KinesisProducer {
   private readonly streamName: string;
   private queue: Array<PutRecordsRequestEntry>;
@@ -21,7 +25,7 @@ export class KinesisProducer {
   private queueSizeInBytes: number;
   private _client: KinesisClient;
   private lastFlush: Date;
-  private readonly flushIntervalFn: Timer;
+  private readonly flushIntervalFn: NodeJS.Timer;
 
   /**
    * Kinesis Producer Constructor.
@@ -59,7 +63,7 @@ export class KinesisProducer {
     }
   }
 
-  public flushPeriodically(): Timer {
+  public flushPeriodically(): NodeJS.Timer {
     return setInterval(async () => {
       const currentTime = new Date();
       const diff = Math.abs(currentTime.getTime() - this.lastFlush.getTime());
@@ -139,7 +143,7 @@ export class KinesisProducer {
     }
 
     // exponential backoff before retrying.
-    await delay(2 ** attempt * 0.1);
+    await delay(Math.pow(2, attempt) * 0.1);
 
     const command = new PutRecordsCommand({
       StreamName: this.streamName,
