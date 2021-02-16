@@ -6,10 +6,11 @@ import {
   PutRecordsRequestEntry,
   PutRecordsResultEntry,
 } from '@aws-sdk/client-kinesis';
-import { KinesisClientConfig } from '@aws-sdk/client-kinesis/KinesisClient';
 
-import { KinesisRecord } from './kinesis.record.interface';
+import { KinesisProducerConfig, KinesisRecord } from './interfaces';
 import { delay, getRecordSizeInBytes, logger } from './utils';
+
+import Timer = NodeJS.Timer;
 export class KinesisProducer {
   private readonly streamName: string;
   private queue: Array<PutRecordsRequestEntry>;
@@ -19,32 +20,32 @@ export class KinesisProducer {
   private readonly maxRetries: number;
   private queueSizeInBytes: number;
   private _client: KinesisClient;
+  private lastFlush: Date;
+  private readonly flushIntervalFn: Timer;
 
   /**
-   * Kinesis Producer
-   * @param streamName: Name of the stream to send the records.
-   * @param clientConfig: Configuration for AWS-SDK Kinesis Client.
-   * @param batchSize: Numbers of records to batch before flushing the queue.
-   * @param batchSizeInBytes: Maximum size in bytes to batch before flushing the queue.
-   * @param batchTime: Maximum of seconds to wait before flushing the queue.
-   * @param maxRetries: Maximum number of times to retry the put operation.
+   * Kinesis Producer Constructor.
+   * @param kinesisProducerConfig: Configuration for the producer.
    */
-  constructor(
-    streamName: string,
-    clientConfig: KinesisClientConfig,
-    batchSize = 500,
-    batchSizeInBytes = 1024 * 1024,
-    batchTime = 5,
-    maxRetries = 10
-  ) {
+  constructor(kinesisProducerConfig: KinesisProducerConfig) {
+    const {
+      streamName,
+      clientConfig,
+      batchSize,
+      batchSizeInBytes,
+      batchTime,
+      maxRetries,
+    } = kinesisProducerConfig;
     this.streamName = streamName;
-    this._client = new KinesisClient(clientConfig);
+    this._client = new KinesisClient(clientConfig || {});
     this.queue = [];
-    this.batchSize = Math.min(500, batchSize);
-    this.batchSizeInBytes = batchSizeInBytes;
-    this.batchTime = batchTime;
-    this.maxRetries = maxRetries;
+    this.batchSize = Math.min(500, batchSize || 500);
+    this.batchSizeInBytes = batchSizeInBytes || 1024 * 1024;
+    this.batchTime = batchTime || 5;
+    this.maxRetries = maxRetries || 3;
     this.queueSizeInBytes = 0;
+    this.lastFlush = new Date();
+    this.flushIntervalFn = this.flushPeriodically();
   }
 
   /**
@@ -56,6 +57,21 @@ export class KinesisProducer {
     for (const record of records) {
       await this.putRecord(record);
     }
+  }
+
+  public flushPeriodically(): Timer {
+    return setInterval(async () => {
+      const currentTime = new Date();
+      const diff = Math.abs(currentTime.getTime() - this.lastFlush.getTime());
+      if (diff >= this.batchTime) {
+        logger.warning(
+          `Queue not flushed since ${this.batchTime} seconds. Flushing now.`
+        );
+        if (this.queue.length > 0) {
+          await this.flushQueue();
+        }
+      }
+    }, this.batchTime * 1000);
   }
 
   /**
@@ -167,6 +183,10 @@ export class KinesisProducer {
   private resetQueue() {
     this.queue = [];
     this.queueSizeInBytes = 0;
+  }
+
+  public close() {
+    clearInterval(this.flushIntervalFn);
   }
 
   get client(): KinesisClient {

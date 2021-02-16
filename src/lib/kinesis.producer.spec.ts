@@ -3,11 +3,11 @@ import * as crypto from 'crypto';
 import { CreateStreamCommand } from '@aws-sdk/client-kinesis';
 import anyTest, { TestInterface } from 'ava';
 import kinesalite from 'kinesalite';
+import sinon from 'sinon';
 import { v4 as uuidv4 } from 'uuid';
 
+import { KinesisRecord } from './interfaces';
 import { KinesisProducer } from './kinesis.producer';
-import { KinesisRecord } from './kinesis.record.interface';
-import kinesisClientMock from './mocks/kinesis.mock';
 import { delay } from './utils';
 
 const KINESIS_TEST_STREAM = 'test-stream';
@@ -29,19 +29,16 @@ const test = anyTest as TestInterface<{
   };
 }>;
 
-test.beforeEach.cb('initialize kinesis stream', (t) => {
+test.beforeEach.cb('it initializes test kinesis stream', (t) => {
   t.context.kinesis = kinesalite({ createStreamMs: 50 });
   t.context.kinesis.listen(4567, async (err: Error) => {
     if (err) throw err;
 
-    t.context.producer = new KinesisProducer(
-      KINESIS_TEST_STREAM,
-      KINESIS_CONFIG,
-      500,
-      1024 * 1024,
-      10,
-      MAX_RETRIES
-    );
+    t.context.producer = new KinesisProducer({
+      streamName: KINESIS_TEST_STREAM,
+      clientConfig: KINESIS_CONFIG,
+      maxRetries: MAX_RETRIES,
+    });
 
     await t.context.producer.client.send(
       new CreateStreamCommand({
@@ -49,13 +46,13 @@ test.beforeEach.cb('initialize kinesis stream', (t) => {
         StreamName: KINESIS_TEST_STREAM,
       })
     );
-    await delay(1000);
+    await delay(2000);
     t.end();
   });
 });
 
-test.serial('put large number of small records', async (t) => {
-  for (let i = 0; i < 1; i++) {
+test.serial('it handles large amount of records', async (t) => {
+  for (let i = 0; i < 100; i++) {
     const records = [];
     for (let j = 0; j < 500; j++) {
       records.push({
@@ -71,7 +68,7 @@ test.serial('put large number of small records', async (t) => {
   t.assert(true);
 });
 
-test.serial('put small number of large records', async (t) => {
+test.serial('it handles multiple large payloads', async (t) => {
   for (let i = 0; i < 10; i++) {
     const records: KinesisRecord[] = [];
     for (let j = 0; j < 10; j++) {
@@ -95,7 +92,7 @@ test.serial('put small number of large records', async (t) => {
   t.assert(true);
 });
 
-test.serial('very large payload', async (t) => {
+test.serial('it handles large payload', async (t) => {
   const singleRecord: Record<string, unknown>[] = [];
   for (let k = 0; k < 100000; k++) {
     singleRecord.push({
@@ -111,17 +108,16 @@ test.serial('very large payload', async (t) => {
   });
 });
 
-test.serial('fail on empty payload', async (t) => {
+test.serial('it throws error on empty payload', async (t) => {
   await t.throwsAsync(async () => {
     await t.context.producer.flushQueue();
   });
 });
 
-test.serial('should retry failed records', async (t) => {
+test.serial('it retries failed records', async (t) => {
+  const sendFake = sinon.fake();
   const error = await t.throwsAsync(async () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    t.context.producer.client = kinesisClientMock;
+    t.context.producer.client.send = sendFake;
     await t.context.producer.putRecords([
       {
         Data: 'test',
@@ -129,11 +125,32 @@ test.serial('should retry failed records', async (t) => {
     ]);
     await t.context.producer.flushQueue();
   });
+  t.is(sendFake.callCount, 3);
   t.is(error.message, `Max retries ${MAX_RETRIES} reached for this batch.`);
 });
 
-test.afterEach.cb('close kinesalite', (t) => {
+test.serial('it flushes the queue periodically', async (t) => {
+  const flushQueueFake = sinon.fake();
+  t.context.producer.flushQueue = flushQueueFake;
+  await t.context.producer.putRecords([
+    {
+      Data: 'test',
+    },
+  ]);
+  await delay(5000);
+  t.assert(flushQueueFake.called);
+});
+
+test.serial("it doesn't flush queue if empty", async (t) => {
+  const flushQueueFake = sinon.fake();
+  t.context.producer.flushQueue = flushQueueFake;
+  await delay(5000);
+  t.assert(flushQueueFake.notCalled);
+});
+
+test.afterEach.cb('it closes test kinesis stream', (t) => {
   t.context.kinesis.close((err: Error) => {
     t.end(err);
+    t.context.producer.close();
   });
 });

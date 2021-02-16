@@ -1,6 +1,6 @@
 import winston, { transports } from 'winston';
 
-import { KinesisRecord } from './kinesis.record.interface';
+import { KinesisRecord } from './interfaces';
 
 /**
  * Winston Logger.
@@ -14,7 +14,7 @@ export const logger = winston.createLogger({
   ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'CI') {
   logger.add(
     new winston.transports.Console({
       format: winston.format.simple(),
