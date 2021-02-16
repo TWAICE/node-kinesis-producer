@@ -19,7 +19,6 @@ jobs:
        uses: actions/cache@v2
        env:
         cache-name: cache-node-modules
-        NODE_ENV: CI
        with:
         # npm cache files are stored in `~/.npm` on Linux/macOS
         path: ~/.npm
@@ -31,6 +30,8 @@ jobs:
      - uses: actions/checkout@v2
      - name: Use Node.js ${{ matrix.node-version }}
        uses: actions/setup-node@v1
+       env:
+         NODE_ENV: CI
        with:
         node-version: ${{ matrix.node-version }}
      - run: npm ci
