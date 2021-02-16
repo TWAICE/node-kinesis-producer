@@ -1,6 +1,6 @@
 {
   "name": "@twaice/node-kinesis-producer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Kinesis Producer Library for NodeJs",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
