@@ -14,6 +14,7 @@
 ![GitHub](https://img.shields.io/github/license/TWAICE/node-kinesis-producer)
 
 </div>
+
 ### Description
 Kinesis Producer library for NodeJS inspired by [Kiner](https://github.com/bufferapp/kiner).
 
