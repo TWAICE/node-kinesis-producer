@@ -1,4 +1,3 @@
-
 # NodeJs Kinesis Producer
 
 <p style="text-align: center">
@@ -16,14 +15,17 @@
 </div>
 
 ### Description
+
 Kinesis Producer library for NodeJS inspired by [Kiner](https://github.com/bufferapp/kiner).
 
 ### Installation
+
 ```
 $ npm install @twaice/node-kinesis-producer
 ```
 
 ### Usage
+
 ```typescript
 import KinesisProducer from '@twaice/node-kinesis-producer';
 

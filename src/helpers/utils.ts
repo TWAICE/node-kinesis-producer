@@ -1,26 +1,4 @@
-import winston, { transports } from 'winston';
-
 import { KinesisRecord } from '../lib/interfaces';
-
-/**
- * Winston Logger.
- */
-export const logger = winston.createLogger({
-  levels: winston.config.syslog.levels,
-  format: winston.format.json(),
-  transports: [
-    new transports.File({ filename: 'error.log', level: 'error' }),
-    new transports.File({ filename: 'combined.log' }),
-  ],
-});
-
-if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'CI') {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.simple(),
-    })
-  );
-}
 
 /**
  * Get the approximate size of record.

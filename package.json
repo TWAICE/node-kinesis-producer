@@ -46,8 +46,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-kinesis": "3.4.0",
-    "@bitauth/libauth": "^1.17.1",
-    "winston": "^3.3.3"
+    "@bitauth/libauth": "^1.17.1"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
