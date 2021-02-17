@@ -11,9 +11,9 @@ import {
   PutRecordsResultEntry,
 } from '@aws-sdk/client-kinesis';
 
-import { delay, getRecordSizeInBytes, logger } from '../helpers/utils';
+import { delay, getRecordSizeInBytes } from '../helpers/utils';
 
-import { KinesisProducerConfig, KinesisRecord } from './interfaces';
+import { KinesisProducerConfig, KinesisRecord, Logger } from './interfaces';
 
 export class KinesisProducer {
   private readonly streamName: string;
@@ -26,6 +26,8 @@ export class KinesisProducer {
   private _client: KinesisClient;
   private lastFlush: Date;
   private readonly flushIntervalFn: NodeJS.Timer;
+  private readonly logger: Logger;
+  private _loggingEnabled: boolean;
 
   /**
    * Kinesis Producer Constructor.
@@ -39,6 +41,8 @@ export class KinesisProducer {
       batchSizeInBytes,
       batchTime,
       maxRetries,
+      logger,
+      loggingEnabled,
     } = kinesisProducerConfig;
     this.streamName = streamName;
     this._client = new KinesisClient(clientConfig || {});
@@ -50,6 +54,8 @@ export class KinesisProducer {
     this.queueSizeInBytes = 0;
     this.lastFlush = new Date();
     this.flushIntervalFn = this.flushPeriodically();
+    this._loggingEnabled = loggingEnabled != undefined ? loggingEnabled : true;
+    this.logger = logger || console;
   }
 
   /**
@@ -68,10 +74,12 @@ export class KinesisProducer {
       const currentTime = new Date();
       const diff = Math.abs(currentTime.getTime() - this.lastFlush.getTime());
       if (diff >= this.batchTime) {
-        logger.warning(
-          `Queue not flushed since ${this.batchTime} seconds. Flushing now.`
-        );
         if (this.queue.length > 0) {
+          if (this._loggingEnabled) {
+            this.logger.warn(
+              `Queue not empty and not flushed since ${diff} seconds. Flushing now.`
+            );
+          }
           await this.flushQueue();
         }
       }
@@ -103,11 +111,13 @@ export class KinesisProducer {
       this.queueSizeInBytes + recordSize > this.batchSizeInBytes;
 
     if (shouldFlush) {
-      logger.info(
-        `Flushed Queue of Length: ${this.queue.length}, Size: ${(
-          this.queueSizeInBytes / 1024
-        ).toFixed(2)} KiB`
-      );
+      if (this._loggingEnabled) {
+        this.logger.warn(
+          `Flushed Queue of Length: ${this.queue.length}, Size: ${(
+            this.queueSizeInBytes / 1024
+          ).toFixed(2)} KiB`
+        );
+      }
       await this.flushQueue();
     }
     const putRecordInput: PutRecordsRequestEntry = {
@@ -125,6 +135,7 @@ export class KinesisProducer {
    */
   public async flushQueue() {
     await this.sendRecords(this.queue);
+    this.lastFlush = new Date();
   }
 
   /**
@@ -159,15 +170,19 @@ export class KinesisProducer {
         ? response['FailedRecordCount']
         : 0;
     } catch (error) {
-      logger.error(
-        `Failed to putRecords into kinesis stream: ${error.name}: ${error.message}`
-      );
+      if (this._loggingEnabled) {
+        this.logger.error(
+          `Failed to putRecords into kinesis stream: ${error.name}: ${error.message}`
+        );
+      }
       return await this.sendRecords(records, attempt + 1);
     }
 
     const failedRecords: PutRecordsRequestEntry[] = [];
     if (failedRecordCount > 0) {
-      logger.warning('Retrying Failed Records');
+      if (this._loggingEnabled) {
+        this.logger.warn('Retrying Failed Records');
+      }
       response['Records']?.forEach((record, idx) => {
         if (Object.prototype.hasOwnProperty.call(record, 'ErrorCode')) {
           failedRecords.push(records[idx]);
@@ -199,5 +214,9 @@ export class KinesisProducer {
 
   set client(KinesisClient) {
     this._client = KinesisClient;
+  }
+
+  set loggingEnabled(value: boolean) {
+    this._loggingEnabled = value;
   }
 }

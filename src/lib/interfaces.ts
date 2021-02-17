@@ -26,4 +26,14 @@ export interface KinesisProducerConfig {
   batchSizeInBytes?: number;
   batchTime?: number;
   maxRetries?: number;
+  loggingEnabled?: boolean;
+  logger?: Logger;
+}
+
+export interface Logger {
+  log(message: unknown, context?: string): unknown;
+  error(message: unknown, trace?: string, context?: string): unknown;
+  warn(message: unknown, context?: string): unknown;
+  debug?(message: unknown, context?: string): unknown;
+  verbose?(message: unknown, context?: string): unknown;
 }

@@ -39,6 +39,7 @@ test.beforeEach.cb('it initializes test kinesis stream', (t) => {
       streamName: KINESIS_TEST_STREAM,
       clientConfig: KINESIS_CONFIG,
       maxRetries: MAX_RETRIES,
+      loggingEnabled: false,
     });
 
     await t.context.producer.client.send(
@@ -133,6 +134,7 @@ test.serial('it retries failed records', async (t) => {
 test.serial('it flushes the queue periodically', async (t) => {
   const flushQueueFake = sinon.fake();
   t.context.producer.flushQueue = flushQueueFake;
+  t.context.producer.loggingEnabled = true;
   await t.context.producer.putRecords([
     {
       Data: 'test',
