@@ -1,18 +1,21 @@
 # NodeJs Kinesis Producer
 
-<p style="text-align: center">
+<p align="center">
   <img width="150" height="150" src="https://i.imgur.com/DzHBVsI.png" alt="Logo">
 </p>
 
-<div style="text-align: center;">
+<p align="center">
 
-![npm (scoped)](https://img.shields.io/npm/v/@twaice/node-kinesis-producer)
-![CI](https://github.com/TWAICE/node-kinesis-producer/workflows/Build/badge.svg)
-[![codecov](https://codecov.io/gh/TWAICE/node-kinesis-producer/branch/main/graph/badge.svg?token=YDL7IV4MTC)](https://codecov.io/gh/TWAICE/node-kinesis-producer)
-![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
-![GitHub](https://img.shields.io/github/license/TWAICE/node-kinesis-producer)
+<img alt="npm (scoped)" src="https://img.shields.io/npm/v/@twaice/node-kinesis-producer">
+<img alt="Github CI" src="https://github.com/TWAICE/node-kinesis-producer/workflows/Build/badge.svg">
+<a href="https://codecov.io/gh/TWAICE/node-kinesis-producer">
+   <img src="https://codecov.io/gh/TWAICE/node-kinesis-producer/branch/main/graph/badge.svg?token=YDL7IV4MTC"/>
+</a>    
+<img alt="npm" src="https://img.shields.io/npm/dw/@twaice/node-kinesis-producer">
+<img alt="Maintained" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg">
+<img alt="License" src="https://img.shields.io/github/license/TWAICE/node-kinesis-producer">
 
-</div>
+</p>
 
 ### Description
 
